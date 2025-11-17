@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoseAI Dashboard - Your AI Fitness Trainer</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- AOS Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- TensorFlow.js and MoveNet -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-hero: linear-gradient(135deg, #3b82f6 0%, #ec4899 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .gradient-text {
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .glassmorphism {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+        }
+        
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5),
+                        0 0 40px rgba(236, 72, 153, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .neon-glow:hover {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8),
+                        0 0 60px rgba(236, 72, 153, 0.5),
+                        inset 0 0 30px rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px) scale(1.02);
+            transition: all 0.3s ease;
+        }
+        
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.8), transparent);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        .nav-blur {
+            background: rgba(15, 12, 41, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Floating Particles Background -->
+    <div class="floating-particles" id="particles"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 nav-blur border-b border-white/10">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold gradient-text">PoseAI</div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="hover:text-blue-400 transition">Home</a>
+                    <a href="#dashboard" class="hover:text-blue-400 transition">Dashboard</a>
+                    <a href="#workouts" class="hover:text-blue-400 transition">Workouts</a>
+                    <a href="#profile" class="hover:text-blue-400 transition">Profile</a>
+                    <a href="#subscription" class="hover:text-blue-400 transition">Subscription</a>
+                    <button id="logout-btn" class="px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </button>
+                </div>
+                <button id="mobile-menu-btn" class="md:hidden">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="pt-20 pb-12 relative z-10">
+        <div class="container mx-auto px-6">
+            
+            <!-- Dashboard Header -->
+            <section class="py-12">
+                <div class="text-center" data-aos="fade-up">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">Welcome Back!</h1>
+                    <p class="text-xl text-gray-300">Track your fitness journey with AI-powered insights</p>
+                    <div class="mt-6">
+                        <span id="subscription-badge" class="px-4 py-2 bg-gray-500 text-white rounded-full text-sm font-bold">FREE</span>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Stats Overview -->
+            <section id="dashboard" class="py-12">
+                <h2 class="text-3xl font-bold text-center mb-12 gradient-text" data-aos="fade-up">Your Fitness Stats</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="glassmorphism p-6 neon-glow text-center" data-aos="fade-up" data-aos-delay="100">
+                        <i class="fas fa-dumbbell text-3xl mb-4 text-blue-400"></i>
+                        <p class="text-gray-400 text-sm">Total Workouts</p>
+                        <p id="total-workouts" class="text-3xl font-bold gradient-text">0</p>
+                    </div>
+                    
+                    <div class="glassmorphism p-6 neon-glow text-center" data-aos="fade-up" data-aos-delay="200">
+                        <i class="fas fa-clock text-3xl mb-4 text-pink-400"></i>
+                        <p class="text-gray-400 text-sm">Total Duration</p>
+                        <p id="total-duration" class="text-3xl font-bold gradient-text">0:00</p>
+                    </div>
+                    
+                    <div class="glassmorphism p-6 neon-glow text-center" data-aos="fade-up" data-aos-delay="300">
+                        <i class="fas fa-calculator text-3xl mb-4 text-purple-400"></i>
+                        <p class="text-gray-400 text-sm">Total Reps</p>
+                        <p id="total-reps" class="text-3xl font-bold gradient-text">0</p>
+                    </div>
+                    
+                    <div class="glassmorphism p-6 neon-glow text-center" data-aos="fade-up" data-aos-delay="400">
+                        <i class="fas fa-chart-line text-3xl mb-4 text-indigo-400"></i>
+                        <p class="text-gray-400 text-sm">Avg Form Score</p>
+                        <p id="avg-form-score" class="text-3xl font-bold gradient-text">0%</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Progress Chart -->
+            <section id="progress" class="py-12">
+                <h2 class="text-3xl font-bold text-center mb-12 gradient-text" data-aos="fade-up">Progress Overview</h2>
+                <div class="glassmorphism p-8 neon-glow" data-aos="fade-up">
+                    <div id="progress-chart" class="min-h-[200px] flex items-center justify-center">
+                        <p class="text-gray-400">Loading progress data...</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Recent Workouts -->
+            <section id="workouts" class="py-12">
+                <h2 class="text-3xl font-bold text-center mb-12 gradient-text" data-aos="fade-up">Recent Workouts</h2>
+                <div class="glassmorphism p-8 neon-glow" data-aos="fade-up">
+                    <div id="recent-workouts" class="space-y-4">
+                        <p class="text-gray-400 text-center">Loading workout history...</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Quick Actions -->
+            <section class="py-12">
+                <h2 class="text-3xl font-bold text-center mb-12 gradient-text" data-aos="fade-up">Quick Actions</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <button onclick="window.location.href='index.html#demo-modal'" class="glassmorphism p-8 neon-glow hover:scale-105 transition text-center" data-aos="fade-up" data-aos-delay="100">
+                        <i class="fas fa-play text-4xl mb-4 text-blue-400"></i>
+                        <h3 class="text-xl font-semibold mb-2">Start Workout</h3>
+                        <p class="text-gray-300">Begin a new AI-guided session</p>
+                    </button>
+                    
+                    <button onclick="document.getElementById('workout-form-modal').classList.remove('hidden')" class="glassmorphism p-8 neon-glow hover:scale-105 transition text-center" data-aos="fade-up" data-aos-delay="200">
+                        <i class="fas fa-plus text-4xl mb-4 text-pink-400"></i>
+                        <h3 class="text-xl font-semibold mb-2">Log Workout</h3>
+                        <p class="text-gray-300">Add a completed workout manually</p>
+                    </button>
+                    
+                    <button onclick="document.getElementById('subscription-modal').classList.remove('hidden')" class="glassmorphism p-8 neon-glow hover:scale-105 transition text-center" data-aos="fade-up" data-aos-delay="300">
+                        <i class="fas fa-crown text-4xl mb-4 text-yellow-400"></i>
+                        <h3 class="text-xl font-semibold mb-2">Upgrade Plan</h3>
+                        <p class="text-gray-300">Unlock premium features</p>
+                    </button>
+                </div>
+            </section>
+            
+        </div>
+    </main>
+    
+    <!-- Workout Form Modal -->
+    <div id="workout-form-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-6">
+        <div class="glassmorphism p-8 max-w-md w-full neon-glow">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold gradient-text">Log Workout</h3>
+                <button onclick="this.closest('.fixed').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="workout-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Exercise Type</label>
+                    <select id="exercise-type" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none">
+                        <option value="squats">Squats</option>
+                        <option value="pushups">Push-ups</option>
+                        <option value="lunges">Lunges</option>
+                        <option value="plank">Plank</option>
+                        <option value="jumping-jacks">Jumping Jacks</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Duration (minutes)</label>
+                        <input type="number" id="duration" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="30" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Reps</label>
+                        <input type="number" id="reps" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="50" required>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Calories</label>
+                        <input type="number" id="calories" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="200">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Form Score (%)</label>
+                        <input type="number" id="form-score" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="85" min="0" max="100">
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition">
+                    Save Workout
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Subscription Modal -->
+    <div id="subscription-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-6">
+        <div class="glassmorphism p-8 max-w-4xl w-full neon-glow max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold gradient-text">Choose Your Plan</h3>
+                <button onclick="this.closest('.fixed').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <div id="subscription-plans" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Plans will be loaded dynamically -->
+                <div class="text-center text-gray-400">Loading subscription plans...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-6">
+        <div class="glassmorphism p-8 max-w-md w-full neon-glow">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold gradient-text">Profile Settings</h3>
+                <button onclick="this.closest('.fixed').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="profile-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Name</label>
+                    <input type="text" id="profile-name" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="profile-email" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg" disabled>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Age</label>
+                        <input type="number" id="profile-age" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="25">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Weight (kg)</label>
+                        <input type="number" id="profile-weight" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="70">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Height (cm)</label>
+                        <input type="number" id="profile-height" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="175">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Fitness Level</label>
+                        <select id="fitness-level" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none">
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Fitness Goal</label>
+                    <select id="fitness-goal" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none">
+                        <option value="weight-loss">Weight Loss</option>
+                        <option value="muscle-gain">Muscle Gain</option>
+                        <option value="endurance">Endurance</option>
+                        <option value="flexibility">Flexibility</option>
+                        <option value="general-fitness">General Fitness</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition">
+                    Save Profile
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="app.js"></script>
+    <script>
+        // Dashboard specific initialization
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load dashboard data if user is logged in
+            if (window.poseai && window.poseai.token) {
+                await window.poseai.loadDashboardData();
+                await loadSubscriptionPlans();
+            } else {
+                // Redirect to home if not logged in
+                window.location.href = 'index.html';
+            }
+        });
+        
+        // Load subscription plans
+        async function loadSubscriptionPlans() {
+            try {
+                const plans = await window.poseai.getSubscriptionPlans();
+                const plansContainer = document.getElementById('subscription-plans');
+                
+                plansContainer.innerHTML = plans.map(plan => `
+                    <div class="glassmorphism p-6 neon-glow hover:scale-105 transition">
+                        <h4 class="text-xl font-bold mb-4">${plan.name}</h4>
+                        <div class="text-3xl font-bold mb-6 gradient-text">₹${plan.price / 100}<span class="text-lg text-gray-300">/month</span></div>
+                        <ul class="space-y-2 mb-6">
+                            ${plan.features.map(feature => `<li class="flex items-center"><i class="fas fa-check text-green-400 mr-2"></i>${feature}</li>`).join('')}
+                        </ul>
+                        <button onclick="subscribeToPlan('${plan.id}')" class="w-full py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition">
+                            Choose ${plan.name}
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load subscription plans:', error);
+            }
+        }
+        
+        // Subscribe to plan
+        async function subscribeToPlan(planId) {
+            try {
+                const paymentIntent = await window.poseai.createPaymentIntent(planId);
+                
+                // In a real implementation, you would use Stripe.js here
+                // For demo, we'll just confirm the subscription
+                await window.poseai.confirmSubscription(planId, paymentIntent.clientSecret);
+                document.getElementById('subscription-modal').classList.add('hidden');
+                
+            } catch (error) {
+                console.error('Subscription failed:', error);
+            }
+        }
+        
+        // Profile button in navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            const profileBtn = document.createElement('button');
+            profileBtn.id = 'profile-btn';
+            profileBtn.className = 'px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition';
+            profileBtn.innerHTML = '<i class="fas fa-user mr-2"></i> Profile';
+            profileBtn.onclick = () => document.getElementById('profile-modal').classList.remove('hidden');
+            
+            const nav = document.querySelector('nav .hidden.md\\:flex');
+            if (nav) {
+                nav.appendChild(profileBtn);
+            }
+        });
+    </script>
+</body>
+</html>
