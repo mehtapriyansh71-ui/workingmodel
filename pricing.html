@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoseAI - Your AI Fitness Trainer</title>
+    <title>Pricing - PoseAI - Your AI Fitness Trainer</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,22 +14,6 @@
     <!-- AOS Animations -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    
-    <!-- TensorFlow.js and MoveNet -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
-    
-    <!-- p5.js for Pushup Calculator Integration -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
-    
-    <!-- QR Code Generation Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
-    <!-- Require the peer dependencies of pose-detection -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
     
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -106,151 +90,43 @@
             100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
         }
         
-        .hero-gradient {
-            background: var(--gradient-hero);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-gradient::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
-            animation: pulse 4s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-        
         .nav-blur {
             background: rgba(15, 12, 41, 0.8);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
         }
         
-        .athlete-outline {
-            stroke: #3b82f6;
-            stroke-width: 2;
-            fill: none;
-            stroke-dasharray: 1000;
-            stroke-dashoffset: 1000;
-            animation: draw 3s ease-in-out infinite;
-        }
-        
-        @keyframes draw {
-            0% { stroke-dashoffset: 1000; }
-            50% { stroke-dashoffset: 0; }
-            100% { stroke-dashoffset: -1000; }
-        }
-        
-        .scroll-indicator {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            animation: bounce 2s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
-            40% { transform: translateX(-50%) translateY(-10px); }
-            60% { transform: translateX(-50%) translateY(-5px); }
-        }
-        
-        /* Pushup Calculator Integration Styles */
-        #p5-container {
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
             position: relative;
-            width: 100%;
-            height: 480px;
-            border-radius: 12px;
             overflow: hidden;
         }
         
-        .exercise-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .exercise-btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            background: rgba(59, 130, 246, 0.2);
-            border: 1px solid rgba(59, 130, 246, 0.5);
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .exercise-btn:hover {
-            background: rgba(59, 130, 246, 0.4);
-            transform: translateY(-2px);
-        }
-        
-        .exercise-btn.active {
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
             background: var(--gradient-hero);
-            border-color: transparent;
+            border-radius: 20px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
         }
         
-        .workout-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            justify-content: center;
+        .pricing-card:hover::before {
+            opacity: 1;
         }
         
-        .control-btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            background: var(--gradient-hero);
-            border: none;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
+        .pricing-card:hover {
+            transform: translateY(-5px) scale(1.05);
             transition: all 0.3s ease;
-        }
-        
-        .control-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
-        }
-        
-        .control-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .form-feedback {
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .form-feedback.good {
-            background: rgba(34, 197, 94, 0.2);
-            border: 1px solid rgba(34, 197, 94, 0.5);
-            color: #22c55e;
-        }
-        
-        .form-feedback.warning {
-            background: rgba(251, 191, 36, 0.2);
-            border: 1px solid rgba(251, 191, 36, 0.5);
-            color: #fbbf24;
-        }
-        
-        .form-feedback.error {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.5);
-            color: #ef4444;
         }
     </style>
 </head>
@@ -264,11 +140,11 @@
             <div class="flex justify-between items-center">
                 <div class="text-2xl font-bold gradient-text">PoseAI</div>
                 <div class="hidden md:flex space-x-8">
-                    <a href="index.html" class="hover:text-blue-400 transition text-blue-400">Home</a>
+                    <a href="index.html" class="hover:text-blue-400 transition">Home</a>
                     <a href="problem.html" class="hover:text-blue-400 transition">Problem</a>
                     <a href="solution.html" class="hover:text-blue-400 transition">Solution</a>
                     <a href="how-it-works.html" class="hover:text-blue-400 transition">How It Works</a>
-                    <a href="pricing.html" class="hover:text-blue-400 transition">Pricing</a>
+                    <a href="pricing.html" class="hover:text-blue-400 transition text-blue-400">Pricing</a>
                     <a href="contact.html" class="hover:text-blue-400 transition">Contact</a>
                     <button id="login-btn" class="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition">
                         <i class="fas fa-sign-in-alt mr-2"></i> Login
@@ -284,36 +160,154 @@
         </div>
     </nav>
     
-    <!-- Hero Section -->
-    <section id="hero" class="min-h-screen hero-gradient flex items-center justify-center relative">
-        <div class="container mx-auto px-6 z-10">
-            <div class="text-center" data-aos="fade-up">
-                <h1 class="text-5xl md:text-7xl font-bold mb-6 text-white">
-                    PoseAI — Your AI Fitness Trainer
-                </h1>
-                <p class="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto">
-                    Real-time posture correction using your camera. No app. No hardware. Just open and workout.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                    <button onclick="startDemo()" class="px-8 py-4 bg-white text-blue-600 rounded-full font-semibold text-lg hover:scale-105 transition neon-glow">
-                        <i class="fas fa-play mr-2"></i> Start Demo
-                    </button>
-                    <a href="how-it-works.html" class="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white hover:text-blue-600 transition">
-                        <i class="fas fa-info-circle mr-2"></i> Learn More
-                    </a>
-                </div>
-                
-                <!-- Animated Athlete Outline -->
-                <div class="relative w-full max-w-md mx-auto h-64">
-                    <svg viewBox="0 0 200 300" class="w-full h-full">
-                        <path class="athlete-outline" d="M100,30 C110,30 120,40 120,50 C120,60 110,70 100,70 C90,70 80,60 80,50 C80,40 90,30 100,30 M100,70 L100,120 M80,90 L120,90 M100,120 L70,180 M100,120 L130,180 M70,180 L70,250 M130,180 L130,250 M70,220 L130,220" />
-                    </svg>
+    <!-- Pricing Section -->
+    <section class="min-h-screen py-20 relative z-10">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16 gradient-text" data-aos="fade-up">
+                How PoseAI Generates Revenue
+            </h2>
+            
+            <!-- Freemium Model -->
+            <div class="mb-16">
+                <h3 class="text-2xl font-bold text-center mb-8 text-white">Freemium Model</h3>
+                <div class="glassmorphism p-8 max-w-2xl mx-auto neon-glow">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <div>
+                            <i class="fas fa-check-circle text-green-400 text-2xl mb-2"></i>
+                            <p>Basic workouts free</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-check-circle text-green-400 text-2xl mb-2"></i>
+                            <p>Limited rep counting</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-check-circle text-green-400 text-2xl mb-2"></i>
+                            <p>Basic posture alerts</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="scroll-indicator">
-            <i class="fas fa-chevron-down text-white text-2xl"></i>
+            
+            <!-- Pricing Plans -->
+            <div class="mb-16">
+                <h3 class="text-2xl font-bold text-center mb-8 text-white">Subscription Plans</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="pricing-card p-8" data-aos="fade-up" data-aos-delay="100">
+                        <h4 class="text-2xl font-bold mb-4 text-white">PRO</h4>
+                        <div class="text-4xl font-bold mb-6 gradient-text">₹199<span class="text-lg text-gray-300">/month</span></div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Full posture correction</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> All AI workout modes</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> No ads</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Basic analytics</li>
+                        </ul>
+                        <button onclick="window.poseai.initiatePayment('pro')" class="w-full py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition">
+                            Choose PRO
+                        </button>
+                    </div>
+                    
+                    <div class="pricing-card p-8 transform scale-105" data-aos="fade-up" data-aos-delay="200">
+                        <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-bold px-3 py-1 rounded-full inline-block mb-4">
+                            MOST POPULAR
+                        </div>
+                        <h4 class="text-2xl font-bold mb-4 text-white">PRO+</h4>
+                        <div class="text-4xl font-bold mb-6 gradient-text">₹299<span class="text-lg text-gray-300">/month</span></div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Everything in PRO</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Advanced analytics</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Smart workout planner</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Community mode unlocked</li>
+                        </ul>
+                        <button onclick="window.poseai.initiatePayment('pro-plus')" class="w-full py-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg font-semibold hover:scale-105 transition">
+                            Choose PRO+
+                        </button>
+                    </div>
+                    
+                    <div class="pricing-card p-8" data-aos="fade-up" data-aos-delay="300">
+                        <h4 class="text-2xl font-bold mb-4 text-white">ULTRA PRO</h4>
+                        <div class="text-4xl font-bold mb-6 gradient-text">₹399<span class="text-lg text-gray-300">/month</span></div>
+                        <ul class="space-y-3 mb-8">
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Everything in PRO+</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Unlimited AI feedback</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Exclusive workout packs</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Priority feature access</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-400 mr-3"></i> Early access to new models</li>
+                        </ul>
+                        <button onclick="window.poseai.initiatePayment('ultra-pro')" class="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg font-semibold hover:scale-105 transition">
+                            Choose ULTRA PRO
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- B2B Licensing -->
+            <div class="mb-16">
+                <h3 class="text-2xl font-bold text-center mb-8 text-white">B2B Licensing</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glassmorphism p-6 neon-glow text-center">
+                        <i class="fas fa-dumbbell text-3xl mb-3 text-blue-400"></i>
+                        <h4 class="font-semibold mb-2">Gyms</h4>
+                        <p class="text-sm text-gray-300">Enhance member experience</p>
+                    </div>
+                    <div class="glassmorphism p-6 neon-glow text-center">
+                        <i class="fas fa-school text-3xl mb-3 text-pink-400"></i>
+                        <h4 class="font-semibold mb-2">Schools/Colleges</h4>
+                        <p class="text-sm text-gray-300">Student fitness programs</p>
+                    </div>
+                    <div class="glassmorphism p-6 neon-glow text-center">
+                        <i class="fas fa-heartbeat text-3xl mb-3 text-purple-400"></i>
+                        <h4 class="font-semibold mb-2">Physiotherapy</h4>
+                        <p class="text-sm text-gray-300">Rehabilitation support</p>
+                    </div>
+                    <div class="glassmorphism p-6 neon-glow text-center">
+                        <i class="fas fa-rocket text-3xl mb-3 text-indigo-400"></i>
+                        <h4 class="font-semibold mb-2">Fitness Startups</h4>
+                        <p class="text-sm text-gray-300">White-label solutions</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Corporate Wellness -->
+            <div class="mb-16">
+                <h3 class="text-2xl font-bold text-center mb-8 text-white">Corporate Wellness Partnerships</h3>
+                <div class="glassmorphism p-8 max-w-2xl mx-auto neon-glow text-center">
+                    <i class="fas fa-building text-4xl mb-4 text-blue-400"></i>
+                    <p class="text-lg mb-4">Companies pay for employee wellness plans</p>
+                    <p class="text-gray-300">Boost productivity and health with AI-guided fitness programs</p>
+                </div>
+            </div>
+            
+            <!-- Additional Revenue Streams -->
+            <div>
+                <h3 class="text-2xl font-bold text-center mb-8 text-white">Additional Revenue Streams</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="glassmorphism p-6 neon-glow">
+                        <h4 class="font-semibold mb-3 text-lg">Ads (Free Version)</h4>
+                        <ul class="space-y-2 text-sm text-gray-300">
+                            <li>• Fitness brands</li>
+                            <li>• Smart home workout equipment</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="glassmorphism p-6 neon-glow">
+                        <h4 class="font-semibold mb-3 text-lg">Add-On Packs</h4>
+                        <ul class="space-y-2 text-sm text-gray-300">
+                            <li>• AI voice packs</li>
+                            <li>• Cardio packs</li>
+                            <li>• Premium workout challenges</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="glassmorphism p-6 neon-glow">
+                        <h4 class="font-semibold mb-3 text-lg">Affiliate Revenue</h4>
+                        <ul class="space-y-2 text-sm text-gray-300">
+                            <li>• Fitness accessories</li>
+                            <li>• Sportswear</li>
+                            <li>• Nutrition partners</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -388,113 +382,6 @@
                     </button>
                 </div>
             </form>
-        </div>
-    </div>
-    
-    <!-- Enhanced Demo Modal with Pushup Calculator Integration -->
-    <div id="demo-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-6">
-        <div class="glassmorphism p-8 max-w-6xl w-full neon-glow max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold gradient-text">PoseAI Workout Demo</h3>
-                <button onclick="closeDemo()" class="text-gray-400 hover:text-white">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-            
-            <!-- Exercise Selector -->
-            <div class="mb-6">
-                <h4 class="text-lg font-semibold mb-3">Select Exercise Type:</h4>
-                <div class="exercise-selector">
-                    <button class="exercise-btn active" data-exercise="pushups" onclick="selectExercise('pushups')">
-                        <i class="fas fa-hand-rock mr-2"></i> Push-ups
-                    </button>
-                    <button class="exercise-btn" data-exercise="squats" onclick="selectExercise('squats')">
-                        <i class="fas fa-chair mr-2"></i> Squats
-                    </button>
-                    <button class="exercise-btn" data-exercise="jumping-jacks" onclick="selectExercise('jumping-jacks')">
-                        <i class="fas fa-running mr-2"></i> Jumping Jacks
-                    </button>
-                    <button class="exercise-btn" data-exercise="plank" onclick="selectExercise('plank')">
-                        <i class="fas fa-grip-lines mr-2"></i> Plank
-                    </button>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Video/Canvas Section -->
-                <div>
-                    <div id="p5-container" class="glassmorphism p-4 rounded-lg">
-                        <!-- p5.js canvas will be inserted here -->
-                    </div>
-                    <div class="workout-controls">
-                        <button id="start-camera-btn" onclick="startCamera()" class="control-btn">
-                            <i class="fas fa-camera mr-2"></i> Start Camera
-                        </button>
-                        <button id="stop-camera-btn" onclick="stopCamera()" class="control-btn" disabled>
-                            <i class="fas fa-stop mr-2"></i> Stop
-                        </button>
-                        <button id="reset-workout-btn" onclick="resetWorkout()" class="control-btn">
-                            <i class="fas fa-redo mr-2"></i> Reset
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Stats and Feedback Section -->
-                <div>
-                    <div class="glassmorphism p-6 mb-4">
-                        <h4 class="font-semibold mb-3">AI Analysis & Feedback</h4>
-                        <div id="ai-feedback" class="space-y-2 mb-3">
-                            <p class="text-gray-300">Camera not started yet...</p>
-                        </div>
-                        <div id="form-feedback" class="form-feedback hidden">
-                            <!-- Form feedback will appear here -->
-                        </div>
-                    </div>
-                    
-                    <div class="glassmorphism p-6 mb-4">
-                        <h4 class="font-semibold mb-3">Workout Stats</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-gray-400 text-sm">Reps</p>
-                                <p class="text-2xl font-bold gradient-text" id="rep-count">0</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 text-sm">Form Score</p>
-                                <p class="text-2xl font-bold gradient-text" id="form-score">--</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 text-sm">Calories</p>
-                                <p class="text-2xl font-bold gradient-text" id="calories">0</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 text-sm">Time</p>
-                                <p class="text-2xl font-bold gradient-text" id="workout-time">0:00</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="glassmorphism p-6">
-                        <h4 class="font-semibold mb-3">Exercise Details</h4>
-                        <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">Current Exercise:</span>
-                                <span id="current-exercise" class="font-semibold">Push-ups</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">Target Reps:</span>
-                                <input type="number" id="target-reps" value="10" min="1" max="100" class="w-20 px-2 py-1 bg-gray-800 rounded text-right">
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">Voice Feedback:</span>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="voice-feedback" checked class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 

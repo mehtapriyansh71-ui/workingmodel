@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - PoseAI - Your AI Fitness Trainer</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- AOS Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-hero: linear-gradient(135deg, #3b82f6 0%, #ec4899 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .gradient-text {
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .glassmorphism {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+        }
+        
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5),
+                        0 0 40px rgba(236, 72, 153, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .neon-glow:hover {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8),
+                        0 0 60px rgba(236, 72, 153, 0.5),
+                        inset 0 0 30px rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px) scale(1.02);
+            transition: all 0.3s ease;
+        }
+        
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.8), transparent);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        .nav-blur {
+            background: rgba(15, 12, 41, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Floating Particles Background -->
+    <div class="floating-particles" id="particles"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 nav-blur border-b border-white/10">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold gradient-text">PoseAI</div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="hover:text-blue-400 transition">Home</a>
+                    <a href="problem.html" class="hover:text-blue-400 transition">Problem</a>
+                    <a href="solution.html" class="hover:text-blue-400 transition">Solution</a>
+                    <a href="how-it-works.html" class="hover:text-blue-400 transition">How It Works</a>
+                    <a href="pricing.html" class="hover:text-blue-400 transition">Pricing</a>
+                    <a href="contact.html" class="hover:text-blue-400 transition text-blue-400">Contact</a>
+                    <button id="login-btn" class="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Login
+                    </button>
+                    <button id="register-btn" class="px-4 py-2 bg-pink-500 rounded-lg hover:bg-pink-600 transition">
+                        <i class="fas fa-user-plus mr-2"></i> Register
+                    </button>
+                </div>
+                <button id="mobile-menu-btn" class="md:hidden">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Contact Section -->
+    <section class="min-h-screen py-20 relative z-10 flex items-center">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16 gradient-text" data-aos="fade-up">
+                Get In Touch
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+                <!-- Contact Form -->
+                <div class="glassmorphism p-8 neon-glow" data-aos="fade-up" data-aos-delay="100">
+                    <h3 class="text-2xl font-bold mb-6">Send us a Message</h3>
+                    
+                    <form id="contact-form" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Name</label>
+                            <input type="text" id="contact-name" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="Your Name" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Email</label>
+                            <input type="email" id="contact-email" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="your@email.com" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Subject</label>
+                            <select id="contact-subject" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none">
+                                <option value="general">General Inquiry</option>
+                                <option value="support">Technical Support</option>
+                                <option value="partnership">Partnership</option>
+                                <option value="feedback">Feedback</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Message</label>
+                            <textarea id="contact-message" rows="5" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="Tell us how we can help..." required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition">
+                            <i class="fas fa-paper-plane mr-2"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Contact Information -->
+                <div class="space-y-8" data-aos="fade-up" data-aos-delay="200">
+                    <!-- Quick Contact -->
+                    <div class="glassmorphism p-6 neon-glow">
+                        <h3 class="text-xl font-bold mb-4">Quick Contact</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope text-blue-400 text-xl w-8"></i>
+                                <span>support@poseai.com</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-phone text-pink-400 text-xl w-8"></i>
+                                <span>+1 (555) 123-4567</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-purple-400 text-xl w-8"></i>
+                                <span>San Francisco, CA</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Social Media -->
+                    <div class="glassmorphism p-6 neon-glow">
+                        <h3 class="text-xl font-bold mb-4">Follow Us</h3>
+                        <div class="flex space-x-4">
+                            <a href="#" class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition">
+                                <i class="fab fa-twitter text-white"></i>
+                            </a>
+                            <a href="#" class="w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center hover:bg-pink-600 transition">
+                                <i class="fab fa-instagram text-white"></i>
+                            </a>
+                            <a href="#" class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition">
+                                <i class="fab fa-linkedin text-white"></i>
+                            </a>
+                            <a href="#" class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center hover:bg-purple-600 transition">
+                                <i class="fab fa-github text-white"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Business Hours -->
+                    <div class="glassmorphism p-6 neon-glow">
+                        <h3 class="text-xl font-bold mb-4">Business Hours</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span>Monday - Friday</span>
+                                <span>9:00 AM - 6:00 PM</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Saturday</span>
+                                <span>10:00 AM - 4:00 PM</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Sunday</span>
+                                <span>Closed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Authentication Modals -->
+    <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-6">
+        <div class="glassmorphism p-8 max-w-md w-full neon-glow">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold gradient-text">Login</h3>
+                <button onclick="this.closest('.fixed').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="login-email" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="your@email.com" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="login-password" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="••••••••••" required>
+                </div>
+                
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition">
+                    Login
+                </button>
+                
+                <div class="text-center">
+                    <p class="text-gray-400">Don't have an account?</p>
+                    <button type="button" onclick="window.poseai.showRegisterModal(); window.poseai.closeModal('login-modal');" class="text-blue-400 hover:text-blue-300 transition">
+                        Sign up here
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="register-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-6">
+        <div class="glassmorphism p-8 max-w-md w-full neon-glow">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold gradient-text">Register</h3>
+                <button onclick="this.closest('.fixed').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="register-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Name</label>
+                    <input type="text" id="register-name" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="John Doe" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="register-email" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="your@email.com" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="register-password" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="••••••••••" required>
+                </div>
+                
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition">
+                    Register
+                </button>
+                
+                <div class="text-center">
+                    <p class="text-gray-400">Already have an account?</p>
+                    <button type="button" onclick="window.poseai.showLoginModal(); window.poseai.closeModal('register-modal');" class="text-blue-400 hover:text-blue-300 transition">
+                        Login here
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

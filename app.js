@@ -7,6 +7,12 @@ class PoseAI {
         this.workoutSession = null;
         this.poseDetector = null;
         
+        // Payment System
+        this.currentPlan = null;
+        this.currentPaymentMethod = null;
+        this.transactionId = null;
+        this.qrCodeInstance = null;
+        
         // Pushup Calculator Integration
         this.currentExercise = 'pushups';
         this.reps = 0;
@@ -53,6 +59,9 @@ class PoseAI {
         if (this.token) {
             await this.loadUserProfile();
         }
+        
+        // Check subscription status
+        this.checkSubscriptionOnLoad();
         
         // Initialize particles and animations
         this.generateParticles();
@@ -642,6 +651,386 @@ class PoseAI {
         this.resetWorkout();
     }
 
+    // Payment System Methods
+    async initiatePayment(planId) {
+        try {
+            // Load payment modal HTML
+            await this.loadPaymentModal();
+            
+            // Set current plan
+            this.currentPlan = this.getPlanDetails(planId);
+            this.populatePlanDetails();
+            
+            // Show payment modal
+            this.showPaymentModal();
+            this.goToPaymentStep(1);
+            
+        } catch (error) {
+            console.error('Failed to initiate payment:', error);
+            this.showNotification('Failed to start payment process', 'error');
+        }
+    }
+
+    getPlanDetails(planId) {
+        const plans = {
+            'pro': {
+                id: 'pro',
+                name: 'PRO',
+                price: 199,
+                description: 'Full posture correction and AI features',
+                features: [
+                    'Full posture correction',
+                    'All AI workout modes',
+                    'No ads',
+                    'Basic analytics'
+                ]
+            },
+            'pro-plus': {
+                id: 'pro-plus',
+                name: 'PRO+',
+                price: 299,
+                description: 'Advanced analytics and community features',
+                features: [
+                    'Everything in PRO',
+                    'Advanced analytics',
+                    'Smart workout planner',
+                    'Community mode unlocked'
+                ]
+            },
+            'ultra-pro': {
+                id: 'ultra-pro',
+                name: 'ULTRA PRO',
+                price: 399,
+                description: 'Ultimate AI fitness experience',
+                features: [
+                    'Everything in PRO+',
+                    'Unlimited AI feedback',
+                    'Exclusive workout packs',
+                    'Priority feature access',
+                    'Early access to new models'
+                ]
+            }
+        };
+        
+        return plans[planId] || plans['pro'];
+    }
+
+    async loadPaymentModal() {
+        const container = document.getElementById('payment-modal-container');
+        if (container.innerHTML.trim()) return; // Already loaded
+        
+        try {
+            const response = await fetch('components/payment-modal.html');
+            const html = await response.text();
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('Failed to load payment modal:', error);
+        }
+    }
+
+    populatePlanDetails() {
+        if (!this.currentPlan) return;
+        
+        document.getElementById('selected-plan-name').textContent = this.currentPlan.name;
+        document.getElementById('selected-plan-price').textContent = `₹${this.currentPlan.price}`;
+        document.getElementById('selected-plan-description').textContent = this.currentPlan.description;
+        
+        const featuresContainer = document.getElementById('selected-plan-features');
+        featuresContainer.innerHTML = this.currentPlan.features.map(feature => 
+            `<div class="flex items-center">
+                <i class="fas fa-check text-green-400 mr-2"></i>
+                <span>${feature}</span>
+            </div>`
+        ).join('');
+    }
+
+    showPaymentModal() {
+        document.getElementById('payment-modal').classList.remove('hidden');
+    }
+
+    closePaymentModal() {
+        document.getElementById('payment-modal').classList.add('hidden');
+        this.resetPaymentFlow();
+    }
+
+    proceedToQRCode() {
+        this.goToPaymentStep(2);
+    }
+
+    selectPaymentMethod(method) {
+        this.currentPaymentMethod = method;
+        this.goToPaymentStep(3);
+        this.generateQRCode();
+    }
+
+    changePaymentMethod() {
+        this.goToPaymentStep(2);
+    }
+
+    generateQRCode() {
+        if (!this.currentPlan || !this.currentPaymentMethod) return;
+        
+        // Generate transaction ID
+        this.transactionId = this.generateTransactionId();
+        
+        // Update payment details
+        document.getElementById('transaction-id').textContent = this.transactionId;
+        document.getElementById('payment-amount').textContent = `₹${this.currentPlan.price}`;
+        document.getElementById('payment-plan').textContent = this.currentPlan.name;
+        
+        // Update payment method display
+        const methodNames = {
+            'phonepe': 'PhonePe',
+            'gpay': 'Google Pay',
+            'paytm': 'Paytm',
+            'amazonpay': 'Amazon Pay',
+            'upi': 'UPI App'
+        };
+        document.getElementById('selected-payment-method-name').textContent = methodNames[this.currentPaymentMethod];
+        document.getElementById('payment-method-display').textContent = methodNames[this.currentPaymentMethod];
+        
+        // Generate UPI payment string
+        const upiString = `upi://pay?pa=poseai@upi&pn=PoseAI&am=${this.currentPlan.price}&cu=INR&tn=${this.currentPlan.name}_SUBSCRIPTION&tr=${this.transactionId}`;
+        
+        // Generate QR code
+        this.generateQRCodeImage(upiString);
+        
+        // Show payment app logo
+        this.showPaymentAppLogo();
+    }
+
+    generateTransactionId() {
+        return 'TXN' + Date.now() + Math.random().toString(36).substr(2, 9).toUpperCase();
+    }
+
+    generateQRCodeImage(text) {
+        const container = document.getElementById('qr-code-container');
+        container.innerHTML = ''; // Clear existing content
+        
+        // Create QR code
+        const qrContainer = document.createElement('div');
+        qrContainer.className = 'w-64 h-64 bg-white rounded-lg p-4';
+        
+        const qrCode = new QRCode(qrContainer, {
+            text: text,
+            width: 224,
+            height: 224,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        
+        container.appendChild(qrContainer);
+    }
+
+    showPaymentAppLogo() {
+        const logoContainer = document.getElementById('payment-app-logo');
+        const logos = {
+            'phonepe': '<i class="fas fa-mobile-alt text-purple-600 text-2xl"></i>',
+            'gpay': '<span class="text-blue-500 font-bold text-2xl">G</span>',
+            'paytm': '<span class="text-blue-500 font-bold text-2xl">P</span>',
+            'amazonpay': '<span class="text-orange-500 font-bold text-2xl">A</span>',
+            'upi': '<i class="fas fa-university text-green-500 text-2xl"></i>'
+        };
+        
+        logoContainer.innerHTML = logos[this.currentPaymentMethod];
+        logoContainer.classList.remove('hidden');
+    }
+
+    async simulatePayment() {
+        // Show processing state
+        this.goToPaymentStep(4);
+        document.getElementById('payment-processing').classList.remove('hidden');
+        document.getElementById('payment-success').classList.add('hidden');
+        document.getElementById('payment-details').classList.add('hidden');
+        document.getElementById('payment-complete-actions').classList.add('hidden');
+        
+        // Simulate payment processing delay
+        await this.delay(2000);
+        
+        // Random success/failure (95% success rate)
+        const isSuccess = Math.random() > 0.05;
+        
+        if (isSuccess) {
+            this.processPaymentSuccess();
+        } else {
+            this.processPaymentFailure();
+        }
+    }
+
+    async processPaymentSuccess() {
+        // Show success state
+        document.getElementById('payment-processing').classList.add('hidden');
+        document.getElementById('payment-success').classList.remove('hidden');
+        
+        // Update payment details
+        document.getElementById('confirmed-transaction-id').textContent = this.transactionId;
+        document.getElementById('confirmed-amount').textContent = `₹${this.currentPlan.price}`;
+        document.getElementById('confirmed-plan').textContent = this.currentPlan.name;
+        
+        // Calculate expiry date (30 days from now)
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 30);
+        document.getElementById('subscription-expiry').textContent = expiryDate.toLocaleDateString();
+        
+        // Show details and actions
+        document.getElementById('payment-details').classList.remove('hidden');
+        
+        await this.delay(1000);
+        document.getElementById('payment-complete-actions').classList.remove('hidden');
+        
+        // Store subscription in localStorage
+        this.storeSubscription();
+        
+        // Show success notification
+        this.showNotification('Payment successful! Welcome to Premium!', 'success');
+    }
+
+    processPaymentFailure() {
+        document.getElementById('payment-processing').classList.add('hidden');
+        
+        // Show error message
+        const errorHtml = `
+            <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-red-500 flex items-center justify-center">
+                    <i class="fas fa-times text-white text-2xl"></i>
+                </div>
+                <h4 class="text-xl font-semibold mb-2">Payment Failed</h4>
+                <p class="text-gray-300 mb-4">Unable to process payment. Please try again.</p>
+                <button onclick="window.poseai.retryPayment()" class="px-6 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition">
+                    Try Again
+                </button>
+            </div>
+        `;
+        
+        document.getElementById('payment-processing').innerHTML = errorHtml;
+    }
+
+    retryPayment() {
+        this.goToPaymentStep(3);
+    }
+
+    storeSubscription() {
+        const subscription = {
+            plan: this.currentPlan.id,
+            planName: this.currentPlan.name,
+            price: this.currentPlan.price,
+            transactionId: this.transactionId,
+            paymentMethod: this.currentPaymentMethod,
+            activatedAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            isActive: true
+        };
+        
+        localStorage.setItem('poseai_subscription', JSON.stringify(subscription));
+        
+        // Update user object
+        if (this.user) {
+            this.user.subscription = this.currentPlan.id;
+            this.user.subscriptionDetails = subscription;
+        }
+    }
+
+    goToPaymentStep(stepNumber) {
+        // Hide all steps
+        document.querySelectorAll('.payment-step').forEach(step => {
+            step.classList.add('hidden');
+        });
+        
+        // Show current step
+        document.getElementById(`payment-step-${stepNumber}`).classList.remove('hidden');
+        
+        // Update step indicators
+        for (let i = 1; i <= 4; i++) {
+            const indicator = document.getElementById(`step${i}-indicator`);
+            if (i <= stepNumber) {
+                indicator.className = 'w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-pink-500 flex items-center justify-center text-white font-semibold';
+            } else {
+                indicator.className = 'w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold';
+            }
+        }
+    }
+
+    resetPaymentFlow() {
+        this.currentPlan = null;
+        this.currentPaymentMethod = null;
+        this.transactionId = null;
+        
+        // Reset to step 1
+        this.goToPaymentStep(1);
+    }
+
+    goToPremiumDashboard() {
+        this.closePaymentModal();
+        this.showPremiumDashboard();
+    }
+
+    showPremiumDashboard() {
+        document.getElementById('premium-dashboard').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    closePremiumDashboard() {
+        document.getElementById('premium-dashboard').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    startPremiumWorkout() {
+        this.closePremiumDashboard();
+        this.closeWelcomeModal();
+        startDemo(); // Start the demo workout
+    }
+
+    showWelcomeModal() {
+        document.getElementById('premium-welcome-modal').classList.remove('hidden');
+    }
+
+    closeWelcomeModal() {
+        document.getElementById('premium-welcome-modal').classList.add('hidden');
+    }
+
+    checkSubscriptionStatus() {
+        const subscription = localStorage.getItem('poseai_subscription');
+        if (!subscription) return false;
+        
+        try {
+            const sub = JSON.parse(subscription);
+            const expiryDate = new Date(sub.expiresAt);
+            const now = new Date();
+            
+            return sub.isActive && expiryDate > now;
+        } catch (error) {
+            console.error('Error parsing subscription:', error);
+            return false;
+        }
+    }
+
+    getSubscriptionDetails() {
+        const subscription = localStorage.getItem('poseai_subscription');
+        if (!subscription) return null;
+        
+        try {
+            return JSON.parse(subscription);
+        } catch (error) {
+            console.error('Error parsing subscription:', error);
+            return null;
+        }
+    }
+
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    checkSubscriptionOnLoad() {
+        const subscription = this.getSubscriptionDetails();
+        if (subscription && subscription.isActive) {
+            // Show welcome modal for existing subscribers
+            setTimeout(() => {
+                this.showWelcomeModal();
+            }, 2000);
+        }
+    }
+
     // UI Setup Methods
     setupNavigation() {
         // Mobile menu toggle
@@ -651,15 +1040,6 @@ class PoseAI {
                 this.toggleMobileMenu();
             });
         }
-
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetId = anchor.getAttribute('href').substring(1);
-                this.scrollToSection(targetId);
-            });
-        });
 
         // Auth buttons
         const loginBtn = document.getElementById('login-btn');
@@ -819,21 +1199,6 @@ class PoseAI {
                 duration: 1000,
                 once: true
             });
-        }
-
-        // Counter animation
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    this.animateCounters();
-                    observer.unobserve(entry.target);
-                }
-            });
-        });
-
-        const metricsSection = document.getElementById('metrics');
-        if (metricsSection) {
-            observer.observe(metricsSection);
         }
 
         // Parallax scrolling

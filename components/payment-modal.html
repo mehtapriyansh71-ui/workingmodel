@@ -1,0 +1,308 @@
+<!-- Payment Modal Structure -->
+<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-6">
+    <div class="glassmorphism p-8 max-w-md w-full neon-glow">
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold gradient-text">Complete Your Subscription</h3>
+            <button onclick="window.poseai.closePaymentModal()" class="text-gray-400 hover:text-white transition">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Step Indicators -->
+        <div class="flex justify-between mb-8">
+            <div class="flex items-center">
+                <div id="step1-indicator" class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-pink-500 flex items-center justify-center text-white font-semibold">1</div>
+                <span class="ml-2 text-sm">Select Plan</span>
+            </div>
+            <div class="flex items-center">
+                <div id="step2-indicator" class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold">2</div>
+                <span class="ml-2 text-sm">Payment Method</span>
+            </div>
+            <div class="flex items-center">
+                <div id="step3-indicator" class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold">3</div>
+                <span class="ml-2 text-sm">Complete Payment</span>
+            </div>
+            <div class="flex items-center">
+                <div id="step4-indicator" class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold">4</div>
+                <span class="ml-2 text-sm">Confirm</span>
+            </div>
+        </div>
+
+        <!-- Step 1: Plan Confirmation -->
+        <div id="payment-step-1" class="payment-step">
+            <div class="glassmorphism p-6 mb-6">
+                <h4 class="text-xl font-semibold mb-4">Selected Plan</h4>
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <p class="text-2xl font-bold gradient-text" id="selected-plan-name">PRO</p>
+                        <p class="text-gray-300" id="selected-plan-description">Full posture correction and AI features</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-3xl font-bold gradient-text" id="selected-plan-price">₹199</p>
+                        <p class="text-sm text-gray-300">/month</p>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div id="selected-plan-features" class="text-sm text-gray-300">
+                        <!-- Features will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glassmorphism p-4 mb-6">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-shield-alt text-green-400 mr-2"></i>
+                    <span class="text-sm">Secure Payment Powered by PoseAI</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-lock text-blue-400 mr-2"></i>
+                    <span class="text-sm">256-bit SSL Encryption</span>
+                </div>
+            </div>
+
+            <button onclick="window.poseai.proceedToQRCode()" class="w-full py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition neon-glow">
+                <i class="fas fa-qrcode mr-2"></i> Proceed to Payment
+            </button>
+        </div>
+
+        <!-- Step 2: Payment Method Selection -->
+        <div id="payment-step-2" class="payment-step hidden">
+            <div class="text-center mb-6">
+                <h4 class="text-xl font-semibold mb-4">Choose Payment Method</h4>
+                <p class="text-gray-300">Select your preferred UPI payment app</p>
+            </div>
+            
+            <div class="space-y-3 mb-6">
+                <!-- PhonePe -->
+                <button onclick="window.poseai.selectPaymentMethod('phonepe')" class="w-full p-4 glassmorphism rounded-lg hover:scale-105 transition flex items-center justify-between group">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-mobile-alt text-white text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h5 class="font-semibold text-white">PhonePe</h5>
+                            <p class="text-sm text-gray-400">Fast & secure UPI payments</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-white transition"></i>
+                </button>
+
+                <!-- Google Pay -->
+                <button onclick="window.poseai.selectPaymentMethod('gpay')" class="w-full p-4 glassmorphism rounded-lg hover:scale-105 transition flex items-center justify-between group">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-white font-bold text-lg">G</span>
+                        </div>
+                        <div class="text-left">
+                            <h5 class="font-semibold text-white">Google Pay</h5>
+                            <p class="text-sm text-gray-400">Simple UPI payments</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-white transition"></i>
+                </button>
+
+                <!-- Paytm -->
+                <button onclick="window.poseai.selectPaymentMethod('paytm')" class="w-full p-4 glassmorphism rounded-lg hover:scale-105 transition flex items-center justify-between group">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-white font-bold text-lg">P</span>
+                        </div>
+                        <div class="text-left">
+                            <h5 class="font-semibold text-white">Paytm</h5>
+                            <p class="text-sm text-gray-400">Complete payment solution</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-white transition"></i>
+                </button>
+
+                <!-- Amazon Pay -->
+                <button onclick="window.poseai.selectPaymentMethod('amazonpay')" class="w-full p-4 glassmorphism rounded-lg hover:scale-105 transition flex items-center justify-between group">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-white font-bold text-lg">A</span>
+                        </div>
+                        <div class="text-left">
+                            <h5 class="font-semibold text-white">Amazon Pay</h5>
+                            <p class="text-sm text-gray-400">Trusted payment service</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-white transition"></i>
+                </button>
+
+                <!-- Generic UPI -->
+                <button onclick="window.poseai.selectPaymentMethod('upi')" class="w-full p-4 glassmorphism rounded-lg hover:scale-105 transition flex items-center justify-between group">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-university text-white text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h5 class="font-semibold text-white">Other UPI Apps</h5>
+                            <p class="text-sm text-gray-400">Any UPI supported app</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-white transition"></i>
+                </button>
+            </div>
+
+            <div class="glassmorphism p-4 mb-6">
+                <div class="flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-green-400 mr-2"></i>
+                    <span class="text-sm">All payments are secure and encrypted</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: QR Code Display -->
+        <div id="payment-step-3" class="payment-step hidden">
+            <div class="text-center mb-6">
+                <h4 class="text-xl font-semibold mb-4">Scan QR Code to Pay</h4>
+                <p class="text-gray-300 mb-4">Complete payment using <span id="selected-payment-method-name">your UPI app</span></p>
+            </div>
+            
+            <div class="glassmorphism p-6 mb-6 text-center">
+                <div id="qr-code-container" class="mb-4 flex justify-center relative">
+                    <!-- QR code will be generated here -->
+                    <div class="w-64 h-64 bg-white rounded-lg flex items-center justify-center">
+                        <div class="text-gray-800">
+                            <i class="fas fa-spinner fa-spin text-4xl mb-2"></i>
+                            <p>Generating QR Code...</p>
+                        </div>
+                    </div>
+                    <!-- Payment app logo overlay -->
+                    <div id="payment-app-logo" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-lg p-2 shadow-lg hidden">
+                        <!-- Logo will be inserted here -->
+                    </div>
+                </div>
+                
+                <div class="text-left space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Transaction ID:</span>
+                        <span id="transaction-id" class="font-mono text-sm">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Amount:</span>
+                        <span id="payment-amount" class="font-semibold">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Plan:</span>
+                        <span id="payment-plan" class="font-semibold">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Payment Method:</span>
+                        <span id="payment-method-display" class="font-semibold">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glassmorphism p-4 mb-6">
+                <div class="flex items-center justify-center">
+                    <i class="fas fa-info-circle text-blue-400 mr-2"></i>
+                    <span class="text-sm">Payment will be automatically detected within 3-5 seconds</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="window.poseai.changePaymentMethod()" class="py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition">
+                    <i class="fas fa-arrow-left mr-2"></i> Change Method
+                </button>
+                <button onclick="window.poseai.simulatePayment()" class="py-3 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg font-semibold hover:scale-105 transition neon-glow">
+                    <i class="fas fa-check-circle mr-2"></i> Pay Now
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Processing & Confirmation -->
+        <div id="payment-step-4" class="payment-step hidden">
+            <div class="text-center mb-6">
+                <div id="payment-processing" class="mb-6">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-500 to-pink-500 flex items-center justify-center">
+                        <i class="fas fa-spinner fa-spin text-white text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-2">Processing Payment</h4>
+                    <p class="text-gray-300">Verifying transaction details...</p>
+                </div>
+                
+                <div id="payment-success" class="hidden">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center">
+                        <i class="fas fa-check text-white text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-2">Payment Successful!</h4>
+                    <p class="text-gray-300">Your subscription has been activated</p>
+                </div>
+            </div>
+            
+            <div id="payment-details" class="glassmorphism p-6 mb-6 hidden">
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Transaction ID:</span>
+                        <span id="confirmed-transaction-id" class="font-mono text-sm">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Amount Paid:</span>
+                        <span id="confirmed-amount" class="font-semibold">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Plan Activated:</span>
+                        <span id="confirmed-plan" class="font-semibold">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Valid Until:</span>
+                        <span id="subscription-expiry" class="font-semibold">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="payment-complete-actions" class="hidden">
+                <button onclick="window.poseai.goToPremiumDashboard()" class="w-full py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition neon-glow">
+                    <i class="fas fa-rocket mr-2"></i> Go to Premium Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Welcome Modal -->
+<div id="premium-welcome-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-6">
+    <div class="glassmorphism p-8 max-w-2xl w-full neon-glow">
+        <div class="text-center mb-6">
+            <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center">
+                <i class="fas fa-crown text-white text-3xl"></i>
+            </div>
+            <h3 class="text-3xl font-bold gradient-text mb-2">Welcome to Premium!</h3>
+            <p class="text-xl text-gray-300">Your PoseAI subscription is now active</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="glassmorphism p-4 text-center">
+                <i class="fas fa-infinity text-3xl text-blue-400 mb-2"></i>
+                <h4 class="font-semibold mb-1">Unlimited AI Feedback</h4>
+                <p class="text-sm text-gray-300">Get real-time form corrections</p>
+            </div>
+            <div class="glassmorphism p-4 text-center">
+                <i class="fas fa-chart-line text-3xl text-pink-400 mb-2"></i>
+                <h4 class="font-semibold mb-1">Advanced Analytics</h4>
+                <p class="text-sm text-gray-300">Track your progress in detail</p>
+            </div>
+            <div class="glassmorphism p-4 text-center">
+                <i class="fas fa-users text-3xl text-purple-400 mb-2"></i>
+                <h4 class="font-semibold mb-1">Community Mode</h4>
+                <p class="text-sm text-gray-300">Connect with other fitness enthusiasts</p>
+            </div>
+            <div class="glassmorphism p-4 text-center">
+                <i class="fas fa-bolt text-3xl text-yellow-400 mb-2"></i>
+                <h4 class="font-semibold mb-1">Priority Features</h4>
+                <p class="text-sm text-gray-300">Early access to new AI models</p>
+            </div>
+        </div>
+        
+        <div class="flex gap-4">
+            <button onclick="window.poseai.startPremiumWorkout()" class="flex-1 py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition neon-glow">
+                <i class="fas fa-play mr-2"></i> Start Premium Workout
+            </button>
+            <button onclick="window.poseai.closeWelcomeModal()" class="flex-1 py-3 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+                Explore Dashboard
+            </button>
+        </div>
+    </div>
+</div>
