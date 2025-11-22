@@ -109,10 +109,32 @@ const paymentSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+const bodyMeasurementSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    timestamp: { type: Date, required: true, default: Date.now },
+    chest: { type: Number }, // cm
+    leftBicep: { type: Number }, // cm
+    rightBicep: { type: Number }, // cm
+    scaleCmPerPixel: { type: Number }, // calibration scale
+    measurementType: { 
+        type: String, 
+        enum: ['chest', 'bicep', 'full_body'], 
+        default: 'full_body' 
+    },
+    confidence: { type: Number, default: 0 }, // AI confidence score
+    metadata: {
+        poseConfidence: { type: Number },
+        calibrationFrames: { type: Number },
+        deviceInfo: { type: String }
+    },
+    createdAt: { type: Date, default: Date.now }
+});
+
 const User = mongoose.model('User', userSchema);
 const Workout = mongoose.model('Workout', workoutSchema);
 const Progress = mongoose.model('Progress', progressSchema);
 const Payment = mongoose.model('Payment', paymentSchema);
+const BodyMeasurement = mongoose.model('BodyMeasurement', bodyMeasurementSchema);
 
 // JWT Middleware
 const authenticateToken = (req, res, next) => {
@@ -540,6 +562,187 @@ app.post('/api/subscriptions/confirm', authenticateToken, async (req, res) => {
         });
     } catch (error) {
         console.error('Subscription confirmation error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Body Measurement Routes
+app.post('/api/measurements', authenticateToken, async (req, res) => {
+    try {
+        const { chest, leftBicep, rightBicep, scaleCmPerPixel, measurementType = 'full_body', metadata = {} } = req.body;
+        
+        // Validate measurement data
+        if (!chest && !leftBicep && !rightBicep) {
+            return res.status(400).json({ error: 'At least one measurement is required' });
+        }
+        
+        const measurementData = {
+            userId: req.user.userId,
+            chest,
+            leftBicep,
+            rightBicep,
+            scaleCmPerPixel,
+            measurementType,
+            confidence: metadata.poseConfidence || 0,
+            metadata: {
+                poseConfidence: metadata.poseConfidence || 0,
+                calibrationFrames: metadata.calibrationFrames || 0,
+                deviceInfo: metadata.deviceInfo || 'web'
+            },
+            timestamp: new Date()
+        };
+        
+        const measurement = new BodyMeasurement(measurementData);
+        await measurement.save();
+        
+        res.status(201).json({
+            message: 'Measurements saved successfully',
+            measurement
+        });
+    } catch (error) {
+        console.error('Measurement save error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/measurements', authenticateToken, async (req, res) => {
+    try {
+        const { page = 1, limit = 10, startDate, endDate, measurementType } = req.query;
+        const skip = (page - 1) * limit;
+
+        let query = { userId: req.user.userId };
+        
+        if (startDate && endDate) {
+            query.timestamp = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            };
+        }
+        
+        if (measurementType) {
+            query.measurementType = measurementType;
+        }
+
+        const measurements = await BodyMeasurement.find(query)
+            .sort({ timestamp: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        const total = await BodyMeasurement.countDocuments(query);
+
+        res.json({
+            measurements,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Measurements fetch error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/measurements/stats', authenticateToken, async (req, res) => {
+    try {
+        const { period = 'month' } = req.query;
+        let startDate = new Date();
+
+        switch (period) {
+            case 'week':
+                startDate.setDate(startDate.getDate() - 7);
+                break;
+            case 'month':
+                startDate.setMonth(startDate.getMonth() - 1);
+                break;
+            case 'year':
+                startDate.setFullYear(startDate.getFullYear() - 1);
+                break;
+        }
+
+        const stats = await BodyMeasurement.aggregate([
+            {
+                $match: {
+                    userId: mongoose.Types.ObjectId(req.user.userId),
+                    timestamp: { $gte: startDate }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    avgChest: { $avg: '$chest' },
+                    avgLeftBicep: { $avg: '$leftBicep' },
+                    avgRightBicep: { $avg: '$rightBicep' },
+                    maxChest: { $max: '$chest' },
+                    maxLeftBicep: { $max: '$leftBicep' },
+                    maxRightBicep: { $max: '$rightBicep' },
+                    minChest: { $min: '$chest' },
+                    minLeftBicep: { $min: '$leftBicep' },
+                    minRightBicep: { $min: '$rightBicep' },
+                    totalMeasurements: { $sum: 1 },
+                    avgConfidence: { $avg: '$confidence' }
+                }
+            }
+        ]);
+
+        const result = stats[0] || {
+            avgChest: 0,
+            avgLeftBicep: 0,
+            avgRightBicep: 0,
+            maxChest: 0,
+            maxLeftBicep: 0,
+            maxRightBicep: 0,
+            minChest: 0,
+            minLeftBicep: 0,
+            minRightBicep: 0,
+            totalMeasurements: 0,
+            avgConfidence: 0
+        };
+
+        res.json(result);
+    } catch (error) {
+        console.error('Measurement stats error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/measurements/latest', authenticateToken, async (req, res) => {
+    try {
+        const latestMeasurement = await BodyMeasurement.findOne({
+            userId: req.user.userId
+        }).sort({ timestamp: -1 });
+
+        if (!latestMeasurement) {
+            return res.status(404).json({ error: 'No measurements found' });
+        }
+
+        res.json(latestMeasurement);
+    } catch (error) {
+        console.error('Latest measurement error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.delete('/api/measurements/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const measurement = await BodyMeasurement.findOne({
+            _id: id,
+            userId: req.user.userId
+        });
+
+        if (!measurement) {
+            return res.status(404).json({ error: 'Measurement not found' });
+        }
+
+        await BodyMeasurement.deleteOne({ _id: id });
+
+        res.json({ message: 'Measurement deleted successfully' });
+    } catch (error) {
+        console.error('Measurement delete error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });

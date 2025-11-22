@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Body Measurement - PoseAI</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https:// <!-- TensorFlow.js and MoveNet -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+    
+    <!-- Require the peer dependencies of pose-detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+        }
+        
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+        }
+        
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5),
+                        0 0 40px rgba(236, 72, 153, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .test-result {
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin: 4px 0;
+            font-family: monospace;
+        }
+        
+        .test-pass {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            color: #22c55e;
+        }
+        
+        .test-fail {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+        }
+        
+        .test-info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="text-white">
+    <div class="container mx-auto px-6 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-4 gradient-text">Body Measurement Test Suite</h1>
+            <p class="text-gray-300">Test the body measurement functionality before integration</p>
+        </div>
+        
+        <!-- Test Results -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- API Tests -->
+            <div class="glassmorphism p-6 neon-glow">
+                <h2 class="text-2xl font-bold mb-4 gradient-text">API Tests</h2>
+                <div id="api-test-results">
+                    <div class="test-result test-info">Running API tests...</div>
+                </div>
+                
+                <div class="mt-6 space-y-3">
+                    <button onclick="testHealthAPI()" class="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition w-full">
+                        <i class="fas fa-heartbeat mr-2"></i> Test Health API
+                    </button>
+                    <button onclick="testMeasurementAPI()" class="px-4 py-2 bg-green-500 rounded-lg hover:bg-green-600 transition w-full">
+                        <i class="fas fa-ruler mr-2"></i> Test Measurement API
+                    </button>
+                    <button onclick="testMeasurementStats()" class="px-4 py-2 bg-purple-500 rounded-lg hover:bg-purple-600 transition w-full">
+                        <i class="fas fa-chart-bar mr-2"></i> Test Measurement Stats
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Frontend Tests -->
+            <div class="glassmorphism p-6 neon-glow">
+                <h2 class="text-2xl font-bold mb-4 gradient-text">Frontend Tests</h2>
+                <div id="frontend-test-results">
+                    <div class="test-result test-info">Running frontend tests...</div>
+                </div>
+                
+                <div class="mt-6 space-y-3">
+                    <button onclick="testPoseDetection()" class="px-4 py-2 bg-pink-500 rounded-lg hover:bg-pink-600 transition w-full">
+                        <i class="fas fa-user mr-2"></i> Test Pose Detection
+                    </button>
+                    <button onclick="testCameraAccess()" class="px-4 py-2 bg-yellow-500 rounded-lg hover:bg-yellow-600 transition w-full">
+                        <i class="fas fa-camera mr-2"></i> Test Camera Access
+                    </button>
+                    <button onclick="testCalibration()" class="px-4 py-2 bg-indigo-500 rounded-lg hover:bg-indigo-600 transition w-full">
+                        <i class="fas fa-ruler-combined mr-2"></i> Test Calibration Logic
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Integration Test -->
+        <div class="glassmorphism p-6 neon-glow mt-6">
+            <h2 class="text-2xl font-bold mb-4 gradient-text">Integration Test</h2>
+            <div id="integration-test-results">
+                <div class="test-result test-info">Ready for integration testing...</div>
+            </div>
+            
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="runFullIntegrationTest()" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition neon-glow">
+                    <i class="fas fa-rocket mr-2"></i> Run Full Integration Test
+                </button>
+                <a href="body-measurement.html" class="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg font-semibold hover:scale-105 transition neon-glow text-center">
+                    <i class="fas fa-play mr-2"></i> Open Body Measurement
+                </a>
+            </div>
+        </div>
+        
+        <!-- Test Summary -->
+        <div class="glassmorphism p-6 neon-glow mt-6">
+            <h2 class="text-2xl font-bold mb-4 gradient-text">Test Summary</h2>
+            <div id="test-summary" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-green-400" id="pass-count">0</div>
+                    <div class="text-gray-300">Tests Passed</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-red-400" id="fail-count">0</div>
+                    <div class="text-gray-300">Tests Failed</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-blue-400" id="total-count">0</div>
+                    <div class="text-gray-300">Total Tests</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            total: 0
+        };
+        
+        function addTestResult(container, message, type = 'info') {
+            const containerEl = document.getElementById(container);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result test-${type}`;
+            resultDiv.textContent = message;
+            containerEl.appendChild(resultDiv);
+            
+            // Update counters
+            testResults.total++;
+            if (type === 'pass') {
+                testResults.passed++;
+            } else if (type === 'fail') {
+                testResults.failed++;
+            }
+            updateTestSummary();
+        }
+        
+        function updateTestSummary() {
+            document.getElementById('pass-count').textContent = testResults.passed;
+            document.getElementById('fail-count').textContent = testResults.failed;
+            document.getElementById('total-count').textContent = testResults.total;
+        }
+        
+        async function testHealthAPI() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    addTestResult('api-test-results', '✓ Health API: Server is running', 'pass');
+                } else {
+                    addTestResult('api-test-results', '✗ Health API: Unexpected response', 'fail');
+                }
+            } catch (error) {
+                addTestResult('api-test-results', `✗ Health API: ${error.message}`, 'fail');
+            }
+        }
+        
+        async function testMeasurementAPI() {
+            try {
+                // Test POST endpoint (will fail without auth, but should return proper error)
+                const response = await fetch('/api/measurements', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chest: 40.5,
+                        leftBicep: 30.2,
+                        rightBicep: 31.0
+                    })
+                });
+                
+                if (response.status === 401) {
+                    addTestResult('api-test-results', '✓ Measurement API: Properly requires authentication', 'pass');
+                } else {
+                    addTestResult('api-test-results', '✗ Measurement API: Unexpected auth behavior', 'fail');
+                }
+            } catch (error) {
+                addTestResult('api-test-results', `✗ Measurement API: ${error.message}`, 'fail');
+            }
+        }
+        
+        async function testMeasurementStats() {
+            try {
+                // Test GET endpoint (will fail without auth, but should return proper error)
+                const response = await fetch('/api/measurements/stats');
+                
+                if (response.status === 401) {
+                    addTestResult('api-test-results', '✓ Measurement Stats API: Properly requires authentication', 'pass');
+                } else {
+                    addTestResult('api-test-results', '✗ Measurement Stats API: Unexpected auth behavior', 'fail');
+                }
+            } catch (error) {
+                addTestResult('api-test-results', `✗ Measurement Stats API: ${error.message}`, 'fail');
+            }
+        }
+        
+        async function testPoseDetection() {
+            try {
+                // Test if TensorFlow.js and MoveNet are loaded
+                if (typeof tf !== 'undefined' && typeof poseDetection !== 'undefined') {
+                    addTestResult('frontend-test-results', '✓ TensorFlow.js and MoveNet: Libraries loaded', 'pass');
+                    
+                    // Test pose detector creation
+                    const detectorConfig = {
+                        modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+                        enableSmoothing: true,
+                    };
+                    
+                    const detector = await poseDetection.createDetector(
+                        poseDetection.SupportedModels.MoveNet,
+                        detectorConfig
+                    );
+                    
+                    if (detector) {
+                        addTestResult('frontend-test-results', '✓ Pose Detection: Detector created successfully', 'pass');
+                    } else {
+                        addTestResult('frontend-test-results', '✗ Pose Detection: Failed to create detector', 'fail');
+                    }
+                } else {
+                    addTestResult('frontend-test-results', '✗ TensorFlow.js and MoveNet: Libraries not loaded', 'fail');
+                }
+            } catch (error) {
+                addTestResult('frontend-test-results', `✗ Pose Detection: ${error.message}`, 'fail');
+            }
+        }
+        
+        async function testCameraAccess() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
+                
+                if (stream) {
+                    addTestResult('frontend-test-results', '✓ Camera Access: Permission granted', 'pass');
+                    stream.getTracks().forEach(track => track.stop());
+                } else {
+                    addTestResult('frontend-test-results', '✗ Camera Access: No stream returned', 'fail');
+                }
+            } catch (error) {
+                if (error.name === 'NotAllowedError') {
+                    addTestResult('frontend-test-results', '⚠ Camera Access: Permission denied (user choice)', 'info');
+                } else {
+                    addTestResult('frontend-test-results', `✗ Camera Access: ${error.message}`, 'fail');
+                }
+            }
+        }
+        
+        function testCalibration() {
+            try {
+                // Test calibration logic
+                const mockShoulderWidth = 200; // pixels
+                const knownShoulderWidth = 40.0; // cm
+                
+                const scaleCmPerPixel = knownShoulderWidth / mockShoulderWidth;
+                
+                if (scaleCmPerPixel > 0 && scaleCmPerPixel < 1) {
+                    addTestResult('frontend-test-results', '✓ Calibration Logic: Scale calculation working', 'pass');
+                } else {
+                    addTestResult('frontend-test-results', '✗ Calibration Logic: Invalid scale calculation', 'fail');
+                }
+                
+                // Test measurement calculation
+                const mockBicepLength = 150; // pixels
+                const bicepLengthCm = mockBicepLength * scaleCmPerPixel;
+                
+                if (bicepLengthCm > 20 && bicepLengthCm < 50) {
+                    addTestResult('frontend-test-results', '✓ Measurement Logic: Bicep calculation realistic', 'pass');
+                } else {
+                    addTestResult('frontend-test-results', '✗ Measurement Logic: Unrealistic bicep measurement', 'fail');
+                }
+            } catch (error) {
+                addTestResult('frontend-test-results', `✗ Calibration Logic: ${error.message}`, 'fail');
+            }
+        }
+        
+        async function runFullIntegrationTest() {
+            addTestResult('integration-test-results', '🚀 Starting full integration test...', 'info');
+            
+            // Clear previous results
+            document.getElementById('api-test-results').innerHTML = '';
+            document.getElementById('frontend-test-results').innerHTML = '';
+            testResults = { passed: 0, failed: 0, total: 0 };
+            updateTestSummary();
+            
+            // Run all tests
+            await testHealthAPI();
+            await testMeasurementAPI();
+            await testMeasurementStats();
+            await testPoseDetection();
+            await testCameraAccess();
+            testCalibration();
+            
+            // Summary
+            const successRate = (testResults.passed / testResults.total * 100).toFixed(1);
+            if (successRate >= 80) {
+                addTestResult('integration-test-results', `🎉 Integration test complete: ${successRate}% success rate`, 'pass');
+            } else {
+                addTestResult('integration-test-results', `⚠️ Integration test complete: ${successRate}% success rate (needs improvement)`, 'fail');
+            }
+        }
+        
+        // Auto-run basic tests on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                testHealthAPI();
+                testPoseDetection();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

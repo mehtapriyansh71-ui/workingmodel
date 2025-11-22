@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Measurements - PoseAI</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- TensorFlow.js and MoveNet -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+    
+    <!-- Require the peer dependencies of pose-detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-hero: linear-gradient(135deg, #3b82f6 0%, #ec4899 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .gradient-text {
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .glassmorphism {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+        }
+        
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5),
+                        0 0 40px rgba(236, 72, 153, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .neon-glow:hover {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8),
+                        0 0 60px rgba(236, 72, 153, 0.5),
+                        inset 0 0 30px rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px) scale(1.02);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-blur {
+            background: rgba(15, 12, 41, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        #measurement-canvas {
+            position: relative;
+            width: 100%;
+            height: 480px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .measurement-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: var(--gradient-hero);
+            border: none;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .measurement-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+        
+        .measurement-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .measurement-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .measurement-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .measurement-value {
+            font-size: 2rem;
+            font-weight: bold;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-ready {
+            background: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+        
+        .status-calibrating {
+            background: #f59e0b;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-measuring {
+            background: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            animation: pulse 1s infinite;
+        }
+        
+        .status-error {
+            background: #ef4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .calibration-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .measurement-line {
+            stroke: #10b981;
+            stroke-width: 3;
+            stroke-dasharray: 5, 5;
+            animation: dash 20s linear infinite;
+        }
+        
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -100;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 nav-blur border-b border-white/10">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold gradient-text">PoseAI</div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="hover:text-blue-400 transition">
+                        <i class="fas fa-home mr-2"></i> Home
+                    </a>
+                    <button onclick="window.history.back()" class="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i> Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="pt-24 pb-12 px-6">
+        <div class="container mx-auto max-w-6xl">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">
+                    Body Measurements
+                </h1>
+                <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+                    AI-powered body measurements using your camera. Get accurate chest and bicep measurements in real-time.
+                </p>
+            </div>
+            
+            <!-- Status Bar -->
+            <div class="glassmorphism p-4 mb-6 neon-glow">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span id="status-indicator" class="status-indicator status-ready"></span>
+                        <span id="status-text" class="font-semibold">Ready to start</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-300">Calibration:</span>
+                        <span id="calibration-status" class="font-semibold">Not calibrated</span>
+                        <span class="text-sm text-gray-300 ml-4">Scale:</span>
+                        <span id="scale-value" class="font-semibold">-- cm/px</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Camera/Canvas Section -->
+                <div>
+                    <div class="glassmorphism p-6 rounded-lg neon-glow">
+                        <h3 class="text-xl font-semibold mb-4">Camera View</h3>
+                        <div id="measurement-canvas" class="glassmorphism p-4 rounded-lg mb-4">
+                            <!-- Canvas for video and pose detection -->
+                            <canvas id="pose-canvas" width="640" height="480"></canvas>
+                            <video id="video-element" style="display: none;"></video>
+                            
+                            <!-- Calibration Overlay -->
+                            <div id="calibration-overlay" class="calibration-overlay hidden">
+                                <h4 class="text-lg font-semibold mb-2">Calibrating...</h4>
+                                <p class="text-sm mb-2">Show your hand clearly to the camera</p>
+                                <div class="w-16 h-16 border-2 border-green-400 rounded-lg mx-auto mb-2"></div>
+                                <p class="text-xs text-gray-300">Place your hand in the box</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Control Buttons -->
+                        <div class="flex flex-wrap gap-3 justify-center">
+                            <button id="start-camera-btn" onclick="startMeasurementCamera()" class="measurement-btn">
+                                <i class="fas fa-camera mr-2"></i> Start Camera
+                            </button>
+                            <button id="calibrate-btn" onclick="calibrateMeasurement()" class="measurement-btn" disabled>
+                                <i class="fas fa-ruler mr-2"></i> Calibrate
+                            </button>
+                            <button id="measure-btn" onclick="takeMeasurement()" class="measurement-btn" disabled>
+                                <i class="fas fa-tape mr-2"></i> Measure
+                            </button>
+                            <button id="stop-camera-btn" onclick="stopMeasurementCamera()" class="measurement-btn" disabled>
+                                <i class="fas fa-stop mr-2"></i> Stop
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Measurements Section -->
+                <div>
+                    <div class="glassmorphism p-6 rounded-lg neon-glow">
+                        <h3 class="text-xl font-semibold mb-4">Measurements</h3>
+                        
+                        <!-- Chest Measurement -->
+                        <div class="measurement-card mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center">
+                                    <i class="fas fa-chest text-blue-400 text-xl mr-3"></i>
+                                    <span class="font-semibold">Chest Width</span>
+                                </div>
+                                <div class="measurement-value" id="chest-measurement">-- cm</div>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                Measured across shoulder width
+                            </div>
+                        </div>
+                        
+                        <!-- Left Bicep Measurement -->
+                        <div class="measurement-card mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center">
+                                    <i class="fas fa-dumbbell text-green-400 text-xl mr-3"></i>
+                                    <span class="font-semibold">Left Bicep</span>
+                                </div>
+                                <div class="measurement-value" id="left-bicep-measurement">-- cm</div>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                Shoulder to elbow length
+                            </div>
+                        </div>
+                        
+                        <!-- Right Bicep Measurement -->
+                        <div class="measurement-card mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center">
+                                    <i class="fas fa-dumbbell text-purple-400 text-xl mr-3"></i>
+                                    <span class="font-semibold">Right Bicep</span>
+                                </div>
+                                <div class="measurement-value" id="right-bicep-measurement">-- cm</div>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                Shoulder to elbow length
+                            </div>
+                        </div>
+                        
+                        <!-- Measurement History -->
+                        <div class="mt-6">
+                            <h4 class="font-semibold mb-3">Recent Measurements</h4>
+                            <div id="measurement-history" class="space-y-2 max-h-48 overflow-y-auto">
+                                <p class="text-gray-400 text-sm">No measurements yet</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Save Measurements Button -->
+                        <button onclick="saveMeasurements()" class="w-full mt-4 py-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg font-semibold hover:scale-105 transition neon-glow">
+                            <i class="fas fa-save mr-2"></i> Save Measurements
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Instructions -->
+            <div class="glassmorphism p-6 mt-6 neon-glow">
+                <h3 class="text-xl font-semibold mb-4">How to Measure</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-hand-paper text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2">1. Calibrate</h4>
+                        <p class="text-sm text-gray-300">Show your hand to set the measurement scale</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-user text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2">2. Position</h4>
+                        <p class="text-sm text-gray-300">Stand straight with arms visible to the camera</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-camera text-white text-2xl"></i>
+                        </div>
+                        <h4 class="font-semibold mb-2">3. Measure</h4>
+                        <p class="text-sm text-gray-300">Click measure to capture your body dimensions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script src="body-measurement.js"></script>
+</body>
+</html>
